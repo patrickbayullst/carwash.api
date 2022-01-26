@@ -1,5 +1,4 @@
 ﻿using Carwash.Models.Requests;
-using Carwash.Repositories;
 using Carwash.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +8,13 @@ namespace Carwash.Controllers
     [Route("api/v1/[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly AuthService _authService;
+
+        public AuthController(AuthService authService)
+        {
+            _authService = authService;
+        }
+
         [AllowAnonymous]
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserRequest model)
@@ -16,7 +22,12 @@ namespace Carwash.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok();
+            var result = await _authService.Register(model);
+
+            if (result == null)
+                return Unauthorized();
+
+            return Ok(result);
         }
 
         [AllowAnonymous]
@@ -26,16 +37,12 @@ namespace Carwash.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok();
-        }
+            var loginResult = await _authService.Login(model);
 
-        [HttpGet]   
-        public async Task<IActionResult> GetTest()
-        {
-            var userRepositry = new UserRepository();
-            //await userRepositry.CreateUser();
-            await userRepositry.GetAsync("patrickbay");
-            return Ok();
+            if (loginResult == null)
+                return Unauthorized();
+
+            return Ok(loginResult);
         }
     }
 }

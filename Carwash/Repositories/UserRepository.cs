@@ -1,45 +1,43 @@
 ﻿using Carwash.Models.Users;
-using Carwash.Utilities;
 using MongoDB.Driver;
 
 namespace Carwash.Repositories
 {
-    public class UserRepository
+    public class UserRepository : BaseRepository
     {
         private readonly IMongoCollection<FullUserModel> _users;
         public UserRepository()
         {
-            var client = new MongoClient("mongodb://localhost:27017");
-            var tester = client.GetDatabase("carwash");
-            _users = tester.GetCollection<FullUserModel>("users");
-        }
-
-        public async Task<bool>UserExists(string username)
-        {
-            var userSearch = await _users.FindAsync(a => a.Username == username);
-
-            var result = userSearch.SingleOrDefaultAsync();
-
-            if (result != null)
-                return true;
-
-            return false;
+            var database = GetDatabase();
+            _users = database.GetCollection<FullUserModel>("users");
         }
 
         public async Task<FullUserModel> GetUser(string username)
         {
-            var userSearch = await _users.FindAsync(a => a.Username == username);
-
-            var result = await userSearch.SingleOrDefaultAsync();
-
-            return result;
+            var userSearch = await _users.FindAsync(a => a.Email == username);
+            return await userSearch.SingleOrDefaultAsync();
         }
 
+        public async Task<FullUserModel> GetUserById(string id)
+        {
+            var userSearch = await _users.FindAsync(a => a.Id == id);
+
+            return await userSearch.SingleOrDefaultAsync();
+        }
+
+        public async Task SetSubscription(string userId, bool subscriptionStatus)
+        {
+            await _users.UpdateOneAsync(Builders<FullUserModel>.Filter.Eq(a => a.Id, userId), Builders<FullUserModel>.Update.Set(a => a.IsSubscribed, subscriptionStatus));
+        }
+
+        public async Task SetDarkTheme(string userId, bool darkTheme)
+        {
+            await _users.UpdateOneAsync(Builders<FullUserModel>.Filter.Eq(a => a.Id, userId), Builders<FullUserModel>.Update.Set(a => a.DarkTheme, darkTheme));
+        }
 
         public async Task CreateUser(FullUserModel fullUser)
         {
             await _users.InsertOneAsync(fullUser);
         }
     }
-
 }

@@ -1,4 +1,5 @@
 ﻿using Carwash.Models.Requests;
+using Carwash.Models.Responses;
 using Carwash.Models.Users;
 using Carwash.Repositories;
 using Carwash.Utilities;
@@ -18,16 +19,32 @@ namespace Carwash.Services
             _passwordUtility = passwordUtility;
         }
 
-        public async Task Login(LoginRequest loginRequest)
+        public async Task<LoginResponse> Login(LoginRequest model)
         {
+            var user = await _userRepository.GetUser(model.Email);
 
+            if (user == null)
+                return null;
+
+            var verifyPwd = _passwordUtility.VerifyPasswordHash(model.Password, user.PasswordHash, user.PasswordSalt);
+
+            if (!verifyPwd)
+                return null;
+
+            var token = _tokenUtility.GenerateToken(user);
+
+            return new LoginResponse
+            {
+                AccessToken = token,
+                DarkTheme = user.DarkTheme
+            };
         }
 
-        public async Task<string> Register(RegisterUserRequest model)
+        public async Task<LoginResponse> Register(RegisterUserRequest model)
         {
-            var userExists = await _userRepository.UserExists(model.Username);
+            var user = await _userRepository.GetUser(model.Email);
 
-            if (userExists)
+            if (user != null)
                 return null;
 
             _passwordUtility.CreatePasswordHash(model.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -40,12 +57,17 @@ namespace Carwash.Services
                 IsSubscribed = false,
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
-                Username = model.Username
+                DarkTheme = false
             };
 
             await _userRepository.CreateUser(fullUserModel);
 
-            return null;
+            var token = _tokenUtility.GenerateToken(fullUserModel);
+
+            return new LoginResponse
+            {
+                AccessToken = token
+            };
         }
     }
 }

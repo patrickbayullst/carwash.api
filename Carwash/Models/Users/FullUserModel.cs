@@ -15,5 +15,7 @@
         public bool IsSubscribed { get; set; }
 
         public bool Admin { get; set; }
+
+        public bool DarkTheme { get; set; }
     }
 }
