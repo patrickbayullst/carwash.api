@@ -2,6 +2,7 @@
 using Carwash.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace Carwash.Controllers
 {
@@ -16,7 +17,7 @@ namespace Carwash.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("Register")]
+        [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserRequest model)
         {
             if (!ModelState.IsValid)
@@ -30,6 +31,14 @@ namespace Carwash.Controllers
             return Ok(result);
         }
 
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody]Token token)
+        {
+
+
+            return Ok();
+        }
+
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
@@ -39,10 +48,25 @@ namespace Carwash.Controllers
 
             var loginResult = await _authService.Login(model);
 
-            if (loginResult == null)
-                return Unauthorized();
+            if(loginResult.Success.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                return StatusCode((int)loginResult.Success.StatusCode, loginResult.Success.ErrorMessage);
+            }
 
-            return Ok(loginResult);
+            return Ok(new
+            {
+                loginResult.Lastname,
+                loginResult.AccessToken,
+                loginResult.Firstname,
+                loginResult.DarkTheme,
+                loginResult.Email,
+                loginResult.Admin
+            });
+        }
+
+        public record Token
+        {
+            public Guid RefreshToken { get; set; }
         }
     }
 }

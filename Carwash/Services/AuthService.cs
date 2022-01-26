@@ -3,6 +3,7 @@ using Carwash.Models.Responses;
 using Carwash.Models.Users;
 using Carwash.Repositories;
 using Carwash.Utilities;
+using System.Net;
 
 namespace Carwash.Services
 {
@@ -24,21 +25,52 @@ namespace Carwash.Services
             var user = await _userRepository.GetUser(model.Email);
 
             if (user == null)
-                return null;
+                return new LoginResponse
+                {
+                    Success = (HttpStatusCode.Unauthorized, "UserNotFound")
+                };
 
             var verifyPwd = _passwordUtility.VerifyPasswordHash(model.Password, user.PasswordHash, user.PasswordSalt);
 
             if (!verifyPwd)
-                return null;
+                return new LoginResponse
+                {
+                    Success = (HttpStatusCode.Unauthorized, "BadCredentials")
+                };
 
             var token = _tokenUtility.GenerateToken(user);
 
             return new LoginResponse
             {
                 AccessToken = token,
-                DarkTheme = user.DarkTheme
+                DarkTheme = user.DarkTheme,
+                Email = model.Email,
+                Firstname = user.Firstname,
+                Lastname = user.Lastname,
+                Admin = user.Admin,
+                IsSubscribed = user.IsSubscribed,
+                Success = (HttpStatusCode.OK, "OK")
             };
         }
+
+        public async Task<UserResponseModel> UserResponse(string id)
+        {
+            var user = await _userRepository.GetUserById(id);
+
+            var token = _tokenUtility.GenerateToken(user);
+
+            return new UserResponseModel
+            {
+                AccessToken = token,
+                DarkTheme = user.DarkTheme,
+                Email = user.Email,
+                Firstname = user.Firstname,
+                Lastname = user.Lastname,
+                Admin = user.Admin,
+                IsSubscribed = user.IsSubscribed
+
+            };
+}
 
         public async Task<LoginResponse> Register(RegisterUserRequest model)
         {
@@ -57,7 +89,9 @@ namespace Carwash.Services
                 IsSubscribed = false,
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
-                DarkTheme = false
+                DarkTheme = false,
+                Firstname = model.Firstname,
+                Lastname =  model.Lastname,
             };
 
             await _userRepository.CreateUser(fullUserModel);
@@ -66,8 +100,25 @@ namespace Carwash.Services
 
             return new LoginResponse
             {
-                AccessToken = token
+                AccessToken = token,
+                Email = fullUserModel.Email,
+                DarkTheme = fullUserModel.DarkTheme,
+                Firstname = fullUserModel.Firstname,
+                Lastname = fullUserModel.Lastname,
+                Admin = fullUserModel.Admin,
+                IsSubscribed = fullUserModel.IsSubscribed
             };
+        }
+
+        public record UserResponseModel
+        {
+            public string AccessToken { get; set; }
+            public bool DarkTheme { get; set; }
+            public string Email { get; set; }
+            public string Firstname { get; set; }
+            public string Lastname { get; set; }
+            public bool Admin { get; set; }
+            public bool IsSubscribed { get; set; }
         }
     }
 }

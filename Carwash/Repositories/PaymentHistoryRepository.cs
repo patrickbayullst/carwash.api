@@ -17,6 +17,21 @@ namespace Carwash.Repositories
             var paymentSearch = await _paymentHistory.FindAsync(a => a.UserId == userId);
             return paymentSearch.ToList();
         }
+
+        public async Task InsertPaymentHistory(string userId, bool isSubscribed, string carwashId)
+        {
+            var paymentHistory = new PaymentHistory
+            {
+                UserId = userId,
+                CarwashId = carwashId,
+                Date = DateTime.Now,
+                Id = Guid.NewGuid().ToString(),
+                Price = isSubscribed ? 0 : 100,
+                Subscribed = isSubscribed
+            };
+
+            await _paymentHistory.InsertOneAsync(paymentHistory);
+        }
     }
 
     public record PaymentHistory

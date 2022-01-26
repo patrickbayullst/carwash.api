@@ -30,7 +30,7 @@ namespace Carwash.Utilities
                 {
                     new Claim("userId", model.Id),
                     new Claim("email", model.Email),
-                    new Claim("username", model.Username),
+                    new Claim("isSubscribed", model.IsSubscribed.ToString()),
                     new Claim("isAdmin", model.Admin.ToString())
                 }),
 
@@ -52,7 +52,7 @@ namespace Carwash.Utilities
                 return new JwtTokenClaimsModel
                 {
                     UserId = context.User.Claims.Single(a => a.Type == "userId").Value,
-                    Username = context.User.Claims.Single(a => a.Type == "username").Value
+                    IsSubscribed = bool.Parse(context.User.Claims.Single(a => a.Type == "isSubscribed").Value)
                 };
             }
             catch(Exception ex)
