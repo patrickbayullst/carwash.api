@@ -35,7 +35,6 @@ namespace Carwash.Controllers
         public async Task<IActionResult> Refresh([FromBody]Token token)
         {
 
-
             return Ok();
         }
 

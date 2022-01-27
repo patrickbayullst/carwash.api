@@ -6,5 +6,7 @@
 
         public string Email { get; set; }
         public bool IsSubscribed { get; set; }
+
+        public bool Admin { get; set; }
     }
 }

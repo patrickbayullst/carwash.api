@@ -52,7 +52,8 @@ namespace Carwash.Utilities
                 return new JwtTokenClaimsModel
                 {
                     UserId = context.User.Claims.Single(a => a.Type == "userId").Value,
-                    IsSubscribed = bool.Parse(context.User.Claims.Single(a => a.Type == "isSubscribed").Value)
+                    IsSubscribed = bool.Parse(context.User.Claims.Single(a => a.Type == "isSubscribed").Value),
+                    Admin = bool.Parse(context.User.Claims.Single(a => a.Type == "isAdmin").Value)
                 };
             }
             catch(Exception ex)

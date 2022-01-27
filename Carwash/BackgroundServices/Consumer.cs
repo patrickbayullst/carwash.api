@@ -24,10 +24,7 @@ namespace Carwash.BackgroundServices
         {
             var factory = new ConnectionFactory
             {
-                HostName = _rabbitConfig.Host,
-                UserName = _rabbitConfig.User,
-                Password = _rabbitConfig.Password,
-                VirtualHost = _rabbitConfig.Vhost,
+                HostName = "localhost",
                 DispatchConsumersAsync = true
             };
             _connection = factory.CreateConnection();
@@ -47,11 +44,9 @@ namespace Carwash.BackgroundServices
                  Console.WriteLine(args.Exception);
              };
 
-            consumer.Received += HandleEvent;
+            consumer.Received +=  HandleEvent;
 
-            _channel.BasicConsume("testqueue", false, consumer);
-
-            await Task.CompletedTask.ConfigureAwait(false);
+            _channel.BasicConsume("backend", false, consumer);
         }
 
         private async Task HandleEvent(object sender, BasicDeliverEventArgs basicDeliverEvent)
@@ -93,7 +88,8 @@ namespace Carwash.BackgroundServices
             var eventHandlerType = Type.GetType(eventHandlerName);
             var eventHandler = (IRabbitEventHandler)scope.ServiceProvider.GetRequiredService(eventHandlerType);
 
-            return await eventHandler.HandleEventAsync(eventBody);
+            Task.Factory.StartNew(async () => await eventHandler.HandleEventAsync(eventBody));
+            return true;
         }
 
         private static string GetHeaderValue(BasicDeliverEventArgs basicDeliverEvent, string headerName)

@@ -19,6 +19,7 @@ builder.Services.AddControllers();
 builder.Services.AddSingleton<UserRepository>();
 builder.Services.AddSingleton<PaymentHistoryRepository>();
 builder.Services.AddSingleton<CarwashRepository>();
+builder.Services.AddSingleton<TokenRepository>();
 
 //services
 builder.Services.AddSingleton<AuthService>();

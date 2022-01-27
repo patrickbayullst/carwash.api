@@ -12,12 +12,14 @@ namespace Carwash.Services
         private readonly UserRepository _userRepository;
         private readonly PasswordUtility _passwordUtility;
         private readonly TokenUtility _tokenUtility;
+        private readonly TokenRepository _tokenRepository;
 
-        public AuthService(UserRepository userRepository, PasswordUtility passwordUtility, TokenUtility tokenUtility)
+        public AuthService(UserRepository userRepository, PasswordUtility passwordUtility, TokenUtility tokenUtility, TokenRepository tokenRepository)
         {
             _tokenUtility = tokenUtility;
             _userRepository = userRepository;
             _passwordUtility = passwordUtility;
+            _tokenRepository = tokenRepository;
         }
 
         public async Task<LoginResponse> Login(LoginRequest model)
@@ -39,6 +41,7 @@ namespace Carwash.Services
                 };
 
             var token = _tokenUtility.GenerateToken(user);
+            await _tokenRepository.InsertRefreshToken(user.Id);
 
             return new LoginResponse
             {
