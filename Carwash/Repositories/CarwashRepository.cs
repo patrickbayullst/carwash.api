@@ -41,9 +41,14 @@ namespace Carwash.Repositories
             return await _carwash.Find(Builders<Carwash>.Filter.Empty).Limit(limit).Skip(offset).ToListAsync();
         }
 
-        public async Task UpdateStatus(string carwashId, StatusEnum status)
+        public async Task<List<Carwash>> GetAdminCarwashes(int limit = 20, int offset = 0)
         {
-            await _carwash.UpdateOneAsync(Builders<Carwash>.Filter.Eq(a => a.Id, carwashId), Builders<Carwash>.Update.Set(a => a.Status, status));
+            return await _carwash.Find(Builders<Carwash>.Filter.Ne(a => a.Status, StatusEnum.Available)).Limit(limit).Skip(offset).ToListAsync();
+        }
+
+        public async Task UpdateStatus(string carwashId, StatusEnum status, long endDate, long startDate)
+        {
+            await _carwash.UpdateOneAsync(Builders<Carwash>.Filter.Eq(a => a.Id, carwashId), Builders<Carwash>.Update.Set(a => a.Status, status).Set(a => a.EndDate, endDate).Set(a => a.StartDate, startDate));
         }
     }
 
@@ -62,5 +67,8 @@ namespace Carwash.Repositories
         public string Name { get; set; }
 
         public decimal Price { get; set; }
+
+        public long EndDate { get; set; }
+        public long StartDate { get; set; }
     }
 }

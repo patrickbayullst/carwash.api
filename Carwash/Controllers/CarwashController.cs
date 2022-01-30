@@ -1,4 +1,5 @@
-﻿using Carwash.Models.Requests;
+﻿using Carwash.Enumerations;
+using Carwash.Models.Requests;
 using Carwash.Repositories;
 using Carwash.Services;
 using Carwash.Utilities;
@@ -28,12 +29,7 @@ namespace Carwash.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            //var jwtToken = _tokenUtility.GetFromHttpContext(HttpContext);
-
-            //if (!jwtToken.Admin)
-            //    return Unauthorized();
-
-            var result = await _carwashRepository.CreateCarwash(model); 
+            var result = await _carwashRepository.CreateCarwash(model);
             return Ok(result);
         }
 
@@ -50,25 +46,46 @@ namespace Carwash.Controllers
             return Ok();
         }
 
-        [HttpGet("{carwashId}")]
-        public async Task<IActionResult> GetCarwash(string carwashId)
+        [HttpPost("{carwashId}/admin/status/{status}")]
+        public async Task<IActionResult> AdminSetCarwash([FromRoute] string carwashId, [FromRoute] StatusEnum status)
         {
-            if (string.IsNullOrWhiteSpace(carwashId))
-                return BadRequest();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
+            var jwtToken = _tokenUtility.GetFromHttpContext(HttpContext);
 
+            if (!jwtToken.Admin)
+                return Unauthorized();
 
+            await _carwashService.SetAdminStatus(carwashId, status);
             return Ok();
+        }
+
+        [HttpGet("admin/list")]
+        public async Task<IActionResult> GetAdminCarwashList(int limit = 20, int offset = 0)
+        {
+            var jwtToken = _tokenUtility.GetFromHttpContext(HttpContext);
+
+            if (!jwtToken.Admin)
+                return Unauthorized();
+
+            var carwashes = await _carwashRepository.GetAdminCarwashes(limit, offset);
+            return Ok(carwashes);
         }
 
         [AllowAnonymous]
         [HttpGet("all")]
         public async Task<IActionResult> GetAllCarwashes(int limit = 20, int offset = 0)
         {
+
             var carWashes = await _carwashRepository.GetAllCarwashes(limit, offset);
 
             return Ok(carWashes);
         }
     }
 
+    public record SetCarwashStatus
+    {
+        public StatusEnum WashStatus { get; set; }
+    }
 }

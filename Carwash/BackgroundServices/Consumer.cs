@@ -1,6 +1,4 @@
-﻿using Carwash.Models.Settings;
-using Carwash.RabbitMqEventHandlers.Interfaces;
-using Microsoft.Extensions.Options;
+﻿using Carwash.RabbitMqEventHandlers.Interfaces;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -10,13 +8,11 @@ namespace Carwash.BackgroundServices
 {
     public class Consumer : BackgroundService
     {
-        private readonly RabbitMQConfig _rabbitConfig;
         private IConnection _connection;
         private IModel _channel;
         private readonly IServiceProvider _services;
-        public Consumer(IOptions<RabbitMQConfig> rabbitConfig, IServiceProvider services)
+        public Consumer( IServiceProvider services)
         {
-            _rabbitConfig = rabbitConfig.Value;
             _services = services;
         }
 
@@ -44,7 +40,7 @@ namespace Carwash.BackgroundServices
                  Console.WriteLine(args.Exception);
              };
 
-            consumer.Received +=  HandleEvent;
+            consumer.Received += HandleEvent;
 
             _channel.BasicConsume("backend", false, consumer);
         }

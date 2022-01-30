@@ -34,6 +34,7 @@ builder.Services.AddHostedService<Consumer>();
 
 //eventHandlers
 builder.Services.AddScoped<SyncEventHandler>();
+builder.Services.AddScoped<AnyEventHandler>();
 
 //config fíles
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
